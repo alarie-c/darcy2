@@ -1,221 +1,94 @@
-// Variables
-x = 5
-str = "Hello"
+# Creating Variables
+<name> = <value>
 
+x = 10
+greeting = "Hello"
+
+# Optional Strong Typing
+x as int = 10
+greeting as string = "Hello"
+
+# Mutating Variables
+x -> 5
+greeting -> "Hi, mom!"
+
+# Constants
 const PI = 3.14159
-const VERSION as Int = 2
+const ADDR = 000.000.000.00
 
-cout x
-cout str
-cout PI
-
-// Selection
-if x > 5
-    cout "X is greater than 5"
-elif x == 5
-    cout "X is 5"
-else
-    cout "X is less than 5"
+# Selection
+if <condition>:
+    <body>
+elif <condition>:
+    <body>
+else:
+    <body>
 end
 
-// Functions
-func area <- height, width
-    return height * width
+if (x > 4):
+    cout "X is greater than 4"
+elif (x < 4):
+    cout "X is less than 4"
+else:
+    cout "X is 4"
 end
 
-my_area = area(5, 10)
-cout my_area
-
-// Lists
-my_list = [5, 10, 15, 20]
-max = my_list.max()
-
-cout my_list
-cout max
-
-my_list.append(25)
-
-cout my_list
-
-// Vectors
-my_vec = <5, 10>
-
-magnitude = my_vec.magnitude()
-normalized = my_vec.normalize()
-
-cout my_vec
-cout magnitude
-cout normalized
-
-// Matricies
-my_matrix = matrix
-    [5, 10, 0]
-    [6, 20, 0]
+# Functions
+function <name>(<parameters>):
+    <body>
 end
 
-row1 = my_matrix[1]
-cout row1                    prints "5, 10, 0"
-
-point = my_matrix[1, 2]
-cout point                   prints "10"
-
-// Classes
-class Rectangle
-    width as Num
-    height as Num
+function calculate_area(width, height):
+    return width * height
 end
 
-impl Rectangle
-    func new <- p #perimeter
-        return Rectangle()
-            width as p[0]
-            height as p[1]
-        end
-    end 
+area = calculate_area(5, 10)
+cout area
 
-    method calculate_area
-        area = self.width * self.height
-        return area 
+# Control Flow (Loops)
+for i in range 0, 10:
+    cout i
+end
+
+my_list = [1, 2, 3, 4, 5]
+for i, value in my_list:
+    cout fmt("{i}, {value}")
+end
+
+# Control Flow (Match)
+day = "Monday"
+match day:
+    case "Monday":
+        cout "I hate mondays :("
+    end
+
+    case "Tuesday":
+        cout "I love tuesdays"
+    end
+
+    case "Wednesday":
+        cout "I hate wedneday :("
+    end
+
+    default:
+        cout "I don't care about today"
     end
 end
 
-my_rectangle = Rectangle:new(perimeter as (5, 10))
-my_area = my_rectangle.calculate_area()
-
-cout my_rectangle
-cout my_area
-
-// Enumerations
-enum Utilities
-    Gas with Num,
-    Water with Num,
-    Electric with Num,
+# Classes (No inheritance, No polymorphism)
+class Rectangle:
+    width as num
+    height as num
 end
 
-impl Utilities
-    method pay for *
-        wallet.funds -= &this
+impl Rectangle:
+    function area(self):
+        return self.width * self.height
     end
 end
 
-gas = Utilities:Gas(100)
-water = Utilities:Water(100)
-elec = Utilities:Electric(100)
+my_shape = Rectangle(5, 10)
 
-gas.pay()
-water.pay()
-elec.pay()
-
-cout gas
-cout water
-cout elec
-
-// Enumerations explanation:
-Enumerations contain variants. Each variant can optionally have a field of a certain type (only 1 field).
-You can implement methods and functions for each using the same syntax as classes.
-
-Methods use "this" to refer to an enum rather than "self" like classes.
-When declaring methods or functions for enums, specify which variants they are implemented for using "for __" and the
-variant name. If the method/function is applied to all variants, use the wildcard operator `*`.
-
-You can access an instance of an enum variant's field with the `&` 'field access' operator.
-
-// Type Conversions
-a = 2
-b = 1
-
-div = a / b
-cout div             --> 0
-
-float_div = a as Num / b as Num
-cout float_div       --> 0.5
-
-// Plotting
-include plotting end
-
-
-// Graph of y = 2x+b
-func slope <- x
-    return (2 * x) + b 
-end
-
-eq_graph = graph("2d cartesian")
-configure eq_graph
-    theme: "default"
-    title: "Graph of y = 2x + b"
-    data: slope
-
-    y_label: "Y Axis"
-    x_label: "X Axis"
-
-    y_step: 1
-    x_step: 1
-
-    y_bounds: range(-10, 10)
-    x_bounds: range(-10, 10)
-    
-    format: "jpg"    
-end
-
-eq_graph.save("equation-graph")
-
-
-points = [
-    (0, 5),
-    (1, 2),
-    (5, 3),
-    (2, 3)
-]
-
-points_graph = graph("2d cartesian")
-configure points_graph
-    theme: "default"
-    title: "A Graph of Random Points"
-    data: points
-    point: "small_dot"
-    point_color: "orange"
-
-    y_label: "Y Axis"
-    x_label: "X Axis"
-
-    y_step: 1
-    x_step: 1
-
-    y_bounds: range(points.coord_min_y(), points.coord_max_y())
-    x_bounds: range(points.coord_min_x(), points.coord_max_x())
-    
-    format: "png"  
-end
-
-points_graph.save("points-graph")
-
-// Multiple datasets
-points1 = [
-    (0, 5),
-    (1, 2)
-]
-
-points2 = [
-    (5, 3),
-    (2, 3)
-]
-
-points_graph = graph("2d cartesian")
-configure points_graph
-    theme: "default"
-    title: "A Graph of Random Points"
-    data: [points1, points2]                // Enter data as a list
-    point: "small_dot"
-    point_color: "orange"
-
-    y_label: "Y Axis"
-    x_label: "X Axis"
-
-    y_step: 1
-    x_step: 1
-
-    y_bounds: range(points1.coord_min_y(), points1.coord_max_y())
-    x_bounds: range(points1.coord_min_x(), points1.coord_max_x())
-    
-    format: "png"  
-end
+cout my_shape.width
+cout my_shape.height
+cout my_shape:area()
