@@ -38,6 +38,15 @@ fn main() {
 
         println!("{:#?}", lexer.tokens);
 
+        // // Print each token and it's corresponding line content
+        // for token in lexer.tokens {
+        //     println!("{:?}", token);
+
+        //     // Find the line content
+        //     let line_content = &lexer.source[token.line - 1];
+        //     println!("{line_content}");
+        // }
+
         // println!("{lines:#?}");
         // println!("{}", lines.len());
 
