@@ -4,27 +4,27 @@ pub mod token {
     #[derive(Debug, Clone, PartialEq, Eq)]
     pub enum TokenType {
         // Binary Operators
-        PLUS,
-        MINUS,
-        STAR,
-        SLASH,
-        MODULUS,
+        Plus,
+        Minus,
+        Star,
+        Slash,
+        Modulus,
 
         // Symbols
-        EQUALS,
-        BANG,
+        Equals,
+        Bang,
 
         // Literals
-        STRINGLIT,
-        NUMBERLIT,
-        TYPE,
+        StringLit,
+        NumberLit,
+        Type,
 
         // Keywords
-        COUT,
+        Cout,
 
         // Other
-        NEWLN,
-        EOF,
+        NewLn,
+        EndFile,
     }
 
     #[derive(Debug, Clone, PartialEq, Eq)]
@@ -40,7 +40,7 @@ pub mod token {
         }
 
         pub fn end(line: usize) -> Self {
-            let token_type = TokenType::EOF;
+            let token_type = TokenType::EndFile;
             let lexeme = String::from("<-- END OF FILE -->");
             
             Self { token_type, lexeme, line } 

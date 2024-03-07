@@ -24,7 +24,7 @@ pub mod lexer {
         pub fn new(chars: Peekable<Iter>, source: Vec<String>) -> Self {
             let tokens = Vec::new();
             let current = ' ';
-            let line = 1 as usize;
+            let line: usize = 1;
 
             Self { tokens, chars, current, line, source }
         }
@@ -75,7 +75,7 @@ pub mod lexer {
                             match number {
                                 // If we get a valid number literal back
                                 LexRes::Match(number) => {
-                                    let token = Token::new(TokenType::NUMBERLIT, String::from(number), self.line);
+                                    let token = Token::new(TokenType::NumberLit, String::from(number), self.line);
                                     self.tokens.push(token);
 
                                     // Advance the iterator
@@ -198,10 +198,7 @@ pub mod lexer {
                 // If character is the terminating " 
                 if self.current == '"' {
                     // Determine if buffer is empty
-                    if !buffer.is_empty() {
-                        return LexRes::Match(buffer);
-                    }
-                    return LexRes::None;
+                    return LexRes::Match(buffer);
                 }
 
                 // Otherwise, add the character to the buffer
@@ -263,7 +260,7 @@ pub mod lexer {
         // Returns a LexRes enum with the attached token if successful
         fn match_keyword(&self, string: &str) -> LexRes<Token> {
             match string {
-                "cout" => LexRes::Match(Token::new(TokenType::COUT, String::from("cout"), self.line)),
+                "cout" => LexRes::Match(Token::new(TokenType::Cout, String::from("cout"), self.line)),
                 _ => LexRes::None,
             }
         }
@@ -273,12 +270,12 @@ pub mod lexer {
         // Returns a LexRes enum with the attached token if successful
         fn match_symbol(&mut self) -> LexRes<Token> {
             match self.current {
-                '=' => LexRes::Match(Token::new(TokenType::EQUALS, String::from("="), self.line)),
-                '!' => LexRes::Match(Token::new(TokenType::BANG, String::from("!"), self.line)),
-                '+' => LexRes::Match(Token::new(TokenType::PLUS, String::from("+"), self.line)),
-                '-' => LexRes::Match(Token::new(TokenType::MINUS, String::from("-"), self.line)),
-                '/' => LexRes::Match(Token::new(TokenType::SLASH, String::from("/"), self.line)),
-                '*' => LexRes::Match(Token::new(TokenType::STAR, String::from("*"), self.line)),
+                '=' => LexRes::Match(Token::new(TokenType::Equals, String::from("="), self.line)),
+                '!' => LexRes::Match(Token::new(TokenType::Bang, String::from("!"), self.line)),
+                '+' => LexRes::Match(Token::new(TokenType::Plus, String::from("+"), self.line)),
+                '-' => LexRes::Match(Token::new(TokenType::Minus, String::from("-"), self.line)),
+                '/' => LexRes::Match(Token::new(TokenType::Slash, String::from("/"), self.line)),
+                '*' => LexRes::Match(Token::new(TokenType::Star, String::from("*"), self.line)),
 
                 // String literal
                 '"' => {
@@ -286,11 +283,11 @@ pub mod lexer {
                         let string = self.take_string();
                         match string {
                             // If a string literal is found
-                            LexRes::Match(literal) => return LexRes::Match(Token::new(TokenType::STRINGLIT, literal, self.line)),
+                            LexRes::Match(literal) => return LexRes::Match(Token::new(TokenType::StringLit, literal, self.line)),
                             
                             // If the string literal is empty
                             LexRes::None => {
-                                todo!("Error handling empty string or something ig");
+                                todo!("Error handling  string or something ig");
                             },
 
                             // If EOF reached
@@ -305,7 +302,7 @@ pub mod lexer {
                 // Newline
                 '\n' => {
                     self.line += 1;
-                    LexRes::Match(Token::new(TokenType::NEWLN, String::from("newline"), self.line - 1))
+                    LexRes::Match(Token::new(TokenType::NewLn, String::from("newline"), self.line - 1))
                 }
 
                 // No matches found

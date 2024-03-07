@@ -1,9 +1,11 @@
 use std::{env, io::Read, fs::File};
 use lexer::lexer::Lexer;
 use token::token::{Token, TokenType};
+use ast::ast::Ast;
 
 mod token;
 mod lexer;
+mod ast;
 
 
 fn main() {
@@ -37,6 +39,13 @@ fn main() {
         lexer.scan();
 
         println!("{:#?}", lexer.tokens);
+
+
+        // Create AST from tokens
+        let mut ast = Ast::new(lexer.tokens);
+        ast.construct();
+
+        println!("{:#?}", ast.root.children);
 
         // Print each token and it's corresponding line content
         // for token in lexer.tokens {
