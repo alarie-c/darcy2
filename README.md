@@ -5,7 +5,7 @@ Second attempt at my language implementation in Rust
 - This is a rewrite of former darcylang, started on Mar 5 2024
 
 ## Project Milestones
-- [ ] Complete lexer (symbols, keywords, and literals)
+- [x] Complete lexer (symbols, keywords, and literals)
 - [ ] Complete AST generation (binary, unary, keyword, and literals)
 - [ ] Complete AST evaluator
 - [ ] Create error handing infrastructure
@@ -18,5 +18,5 @@ Second attempt at my language implementation in Rust
 
 ## Lexer TODO
 - [x] Create lexer struct
-- [ ] Implement helper functions
+- [x] Implement helper functions
 - [ ] Complete `scan()` method

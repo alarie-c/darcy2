@@ -76,7 +76,7 @@ match day:
 end
 
 # Classes (No inheritance, No polymorphism)
-class Rectangle:
+struct Rectangle:
     width as num
     height as num
 end
