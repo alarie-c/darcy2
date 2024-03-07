@@ -38,7 +38,7 @@ fn main() {
 
         println!("{:#?}", lexer.tokens);
 
-        // // Print each token and it's corresponding line content
+        // Print each token and it's corresponding line content
         // for token in lexer.tokens {
         //     println!("{:?}", token);
 

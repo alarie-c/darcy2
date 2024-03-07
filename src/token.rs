@@ -15,9 +15,9 @@ pub mod token {
         BANG,
 
         // Literals
-        STRINGLIT(String),
-        NUMBERLIT(String),
-        TYPE(String),
+        STRINGLIT,
+        NUMBERLIT,
+        TYPE,
 
         // Keywords
         COUT,
