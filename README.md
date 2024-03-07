@@ -3,6 +3,8 @@ Second attempt at my language implementation in Rust
 
 ## Updates
 - This is a rewrite of former darcylang, started on Mar 5 2024
+- AST generation does NOT work currently because I need to figure out lifetimes first
+    - Binary nodes and nodes that have child nodes need to take ownership of formerly created and stored nodes
 
 ## Project Milestones
 - [x] Complete lexer (symbols, keywords, and literals)

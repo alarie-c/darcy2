@@ -53,58 +53,92 @@ mod node {
 
 pub mod ast {
     use crate::token::token::{Token, TokenType};
-    use super::node::{LiteralExpr, LiteralType, Node, RootNode};
+    use super::node::{BinaryExpr, BinaryOp, LiteralExpr, LiteralType, Node, RootNode};
+
+    enum AstRes<T> {
+        Node(T), // Created a new node
+        None, // Could not make a valid node
+        End, // Found end of file
+    }
 
     pub struct Ast {
-        pub tokens: Vec<Token>,
+        pub stream: Vec<Token>,
         pub root: Box<RootNode>,
+        idx: usize,
     }
 
     impl Ast {
         // Constructs a new AST struct with the tokens from the lexer
         // and an empty root node
-        pub fn new(tokens: Vec<Token>) -> Self {
+        pub fn new(stream: Vec<Token>) -> Self {
             let root = Box::new(RootNode { children: Vec::new() });
+            let idx: usize = 0;
             
             Self {
-                tokens,
+                stream,
                 root,
+                idx,
             }
         }
 
         pub fn construct(&mut self) {
-            let mut idx: usize = 0;
-            
-            'construct: while idx <= self.tokens.len() {
+            'construct: while self.idx <= self.stream.len() {
                 // Set current token
-                let current = &self.tokens[idx];
+                let current = &self.stream[self.idx];
 
-                match current.token_type {
-                    // Number literals
-                    TokenType::NumberLit => {
-                        // Check if number literal is a floating point num
-                        if current.lexeme.contains(".") {
-                            let parsed_num = match current.lexeme.parse::<f64>() {
-                                Ok(parsed_num) => parsed_num,
-                                Err(_) => {
-                                    eprintln!("Error parsing number literal to float");
-                                    todo!("Error handling here");
-                                }
-                            };
-                            
-                            let literal = LiteralExpr {
-                                typ: LiteralType::Number(parsed_num),
-                            };
+            }   
+        }
 
-                            let node = Node::NumberLitExpr(literal);
-                            self.root.push_node(node);
-                            
-                            idx += 1;
-                            continue 'construct;
+        fn match_token(&mut self, token: &Token) -> AstRes<Node> {
+            match token.token_type {
+                // Binary operators
+                TokenType::Plus => {
+                    // Get the left (previous) node
+                    let last_node = match self.root.children.last() {
+                        Some(last_node) => last_node,
+                        None => {
+                            todo!("Error handle no left node for binary op")
                         }
+                    };
 
-                        // Otherwise, make integer
-                        let parsed_num = match current.lexeme.parse::<i32>() {
+                    let ln = Box::new(*last_node);
+
+                    
+                    // Get the right (next) node
+                    let next_token = &self.stream[&self.idx + 1];
+                    let next_node = match self.match_token(next_token) {
+                        // If valid node found
+                        AstRes::Node(node) => node,
+
+                        // If no valid node is found
+                        AstRes::None => {
+                            todo!("Error handle no right node for binary op")
+                        },
+
+                        // If EOF reached
+                        AstRes::End => {
+                            todo!("Error handle missing literal for binary operation")
+                        }
+                    };
+
+                    let rn = Box::new(next_node);
+
+                    // Create the binary expr struct
+                    let expr = BinaryExpr { op: BinaryOp::Plus, ln, rn };
+
+                    // Create binary expr node
+                    let node = Node::BinaryExpr(expr);
+                    self.root.push_node(node);
+
+                    AstRes::Node(node)
+                }
+
+
+                // Number literals
+                TokenType::NumberLit => {
+                    // Check if number literal is a floating point num
+                    if token.lexeme.contains(".") {
+                        let parsed_num = match token.lexeme.parse::<f64>() {
                             Ok(parsed_num) => parsed_num,
                             Err(_) => {
                                 eprintln!("Error parsing number literal to float");
@@ -113,37 +147,52 @@ pub mod ast {
                         };
                         
                         let literal = LiteralExpr {
-                            typ: LiteralType::Integer(parsed_num),
+                            typ: LiteralType::Number(parsed_num),
                         };
 
                         let node = Node::NumberLitExpr(literal);
                         self.root.push_node(node);
+                        
+                        return AstRes::Node(node);
+                    }
 
-                        idx += 1;
-                        continue 'construct;
-                    },
+                    // Otherwise, make integer
+                    let parsed_num = match token.lexeme.parse::<i32>() {
+                        Ok(parsed_num) => parsed_num,
+                        Err(_) => {
+                            eprintln!("Error parsing number literal to float");
+                            todo!("Error handling here");
+                        }
+                    };
+                    
+                    let literal = LiteralExpr {
+                        typ: LiteralType::Integer(parsed_num),
+                    };
 
-                    // String literals
-                    TokenType::StringLit => {
-                        let literal: LiteralExpr = LiteralExpr {
-                            typ: LiteralType::String(String::from(&current.lexeme))
-                        };
+                    let node = Node::NumberLitExpr(literal);
+                    self.root.push_node(node);
 
-                        let node = Node::StringLitExpr(literal);
-                        self.root.push_node(node);
+                    AstRes::Node(node)
+                },
 
-                        idx += 1;
-                        continue 'construct;
-                    },
+                // String literals
+                TokenType::StringLit => {
+                    let literal: LiteralExpr = LiteralExpr {
+                        typ: LiteralType::String(String::from(&token.lexeme))
+                    };
 
-                    // End of file
-                    TokenType::EndFile => break 'construct,
+                    let node = Node::StringLitExpr(literal);
+                    self.root.push_node(node);
 
-                    _ => {
-                        idx += 1;
-                        continue 'construct;
-                    },
-                }
+                    AstRes::Node(node)
+                },
+
+                // End of file
+                TokenType::EndFile => AstRes::End,
+
+                _ => {
+                    AstRes::None
+                },
             }
         }
     }
