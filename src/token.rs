@@ -8,7 +8,7 @@ pub mod token {
         Minus,
         Star,
         Slash,
-        Modulus,
+        Percent,
 
         // Symbols
         Equals,

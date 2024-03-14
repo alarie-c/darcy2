@@ -276,6 +276,7 @@ pub mod lexer {
                 '-' => LexRes::Match(Token::new(TokenType::Minus, String::from("-"), self.line)),
                 '/' => LexRes::Match(Token::new(TokenType::Slash, String::from("/"), self.line)),
                 '*' => LexRes::Match(Token::new(TokenType::Star, String::from("*"), self.line)),
+                '%' => LexRes::Match(Token::new(TokenType::Percent, String::from("%"), self.line)),
 
                 // String literal
                 '"' => {

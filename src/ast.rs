@@ -1,4 +1,6 @@
-mod node {
+pub mod node {
+    use super::ast::NodeKey;
+
 
     #[derive(Debug, Clone, PartialEq)]
     pub enum Node {
@@ -9,6 +11,8 @@ mod node {
         NumberLitExpr(LiteralExpr),
         IntegerLitExpr(LiteralExpr),
 
+        // Other
+        RootNode,
     }
 
     #[derive(Debug, Clone, PartialEq)]
@@ -30,169 +34,137 @@ mod node {
     #[derive(Debug, Clone, PartialEq)]
     pub struct BinaryExpr {
         pub op: BinaryOp,
-        pub ln: Box<Node>,
-        pub rn: Box<Node>,
+        pub ln: NodeKey,
+        pub rn: NodeKey,
     }   
 
     #[derive(Debug, Clone, PartialEq)]
     pub struct LiteralExpr {
         pub typ: LiteralType,
     }
-
-    #[derive(Debug, Clone, PartialEq)]
-    pub struct RootNode {
-        pub children: Vec<Node>,
-    }
-
-    impl RootNode {
-        pub fn push_node(&mut self, node: Node) {
-            self.children.push(node);
-        }
-    }
 }
 
 pub mod ast {
-    use crate::token::token::{Token, TokenType};
-    use super::node::{BinaryExpr, BinaryOp, LiteralExpr, LiteralType, Node, RootNode};
+    use std::{iter::Peekable, vec::IntoIter};
 
-    enum AstRes<T> {
-        Node(T), // Created a new node
-        None, // Could not make a valid node
-        End, // Found end of file
+    use slotmap::{new_key_type, SlotMap};
+    use crate::token::token::{TokenType, Token};
+    use super::node::{LiteralExpr, LiteralType, Node};
+
+    // Define custom result type
+    enum AstRes<Node> {
+        Match(Node),
+        None,
+        End,
+    }
+
+    // Define slotmap key type
+    new_key_type! {
+        pub struct NodeKey;
     }
 
     pub struct Ast {
-        pub stream: Vec<Token>,
-        pub root: Box<RootNode>,
-        idx: usize,
+        pub stream: Peekable<IntoIter<Token>>,
+        pub tree: SlotMap<NodeKey, Node>,
+        pub root: NodeKey,
+        pub current: Token,
+        pub keys: Vec<NodeKey>,
     }
 
     impl Ast {
-        // Constructs a new AST struct with the tokens from the lexer
-        // and an empty root node
-        pub fn new(stream: Vec<Token>) -> Self {
-            let root = Box::new(RootNode { children: Vec::new() });
-            let idx: usize = 0;
-            
-            Self {
-                stream,
-                root,
-                idx,
+        fn new(tokens: Vec<Token>) -> Self {
+            let mut tree: SlotMap<NodeKey, Node> = SlotMap::with_key();
+            let keys = Vec::<NodeKey>::new();
+
+            // Construct iterator from tokens
+            let mut stream = tokens.into_iter().peekable();
+            let current = match stream.next() {
+                Some(current) => current,
+                None => {
+                    eprintln!("Recieved an empty token stream!");
+                    std::process::exit(1);
+                }
+            };
+
+            // Create root node and construct
+            let root = tree.insert(Node::RootNode);
+            Self { stream, tree, root, current, keys }
+        }
+
+        // Takes the stream of incoming tokens and constructs an
+        // abstract syntax tree based on it
+        fn parse(&mut self) {
+            'parse: loop {
+                let node = match self.match_token() {
+                    AstRes::Match(n) => {
+                        self.push_node(n);
+                    },
+                    AstRes::None => {
+                        todo!("No node returned");
+                    },
+                    AstRes::End => {
+                        todo!("End of file returned");
+                    },
+                };
+
+                // Advance to next token if possible
+                if self.advance() {
+                    continue 'parse;
+                } else {
+                    break 'parse;
+                }
             }
         }
 
-        pub fn construct(&mut self) {
-            'construct: while self.idx <= self.stream.len() {
-                // Set current token
-                let current = &self.stream[self.idx];
+        fn push_node(&mut self, node: Node) {
+            // Push node to tree and get it's unique key
+            let key = self.tree.insert(node);
 
-            }   
+            // Push that key to the Keys helper vec
+            self.keys.push(key);
         }
 
-        fn match_token(&mut self, token: &Token) -> AstRes<Node> {
-            match token.token_type {
-                // Binary operators
-                TokenType::Plus => {
-                    // Get the left (previous) node
-                    let last_node = match self.root.children.last() {
-                        Some(last_node) => last_node,
-                        None => {
-                            todo!("Error handle no left node for binary op")
-                        }
-                    };
-
-                    let ln = Box::new(*last_node);
-
-                    
-                    // Get the right (next) node
-                    let next_token = &self.stream[&self.idx + 1];
-                    let next_node = match self.match_token(next_token) {
-                        // If valid node found
-                        AstRes::Node(node) => node,
-
-                        // If no valid node is found
-                        AstRes::None => {
-                            todo!("Error handle no right node for binary op")
-                        },
-
-                        // If EOF reached
-                        AstRes::End => {
-                            todo!("Error handle missing literal for binary operation")
-                        }
-                    };
-
-                    let rn = Box::new(next_node);
-
-                    // Create the binary expr struct
-                    let expr = BinaryExpr { op: BinaryOp::Plus, ln, rn };
-
-                    // Create binary expr node
-                    let node = Node::BinaryExpr(expr);
-                    self.root.push_node(node);
-
-                    AstRes::Node(node)
-                }
-
-
+        fn match_token(&mut self) -> AstRes<Node> {
+            match self.current.token_type {
                 // Number literals
                 TokenType::NumberLit => {
-                    // Check if number literal is a floating point num
-                    if token.lexeme.contains(".") {
-                        let parsed_num = match token.lexeme.parse::<f64>() {
+                    // Determine if literal is float or integer
+                    // TODO: Impliment type hinting
+                    
+                    if self.current.lexeme.contains(".") {
+                        // If float
+                        let parsed_num = match self.current.lexeme.parse::<f64>() {
                             Ok(parsed_num) => parsed_num,
                             Err(_) => {
-                                eprintln!("Error parsing number literal to float");
-                                todo!("Error handling here");
+                                todo!("Error handle failure to convert string to float");
                             }
                         };
-                        
-                        let literal = LiteralExpr {
-                            typ: LiteralType::Number(parsed_num),
+
+                        let literal_expr = LiteralExpr { typ: LiteralType::Number(parsed_num) };
+                        return AstRes::Match(Node::NumberLitExpr(literal_expr));
+                    } else {
+                        // If int
+                        let parsed_num = match self.current.lexeme.parse::<i32>() {
+                            Ok(parsed_num) => parsed_num,
+                            Err(_) => {
+                                todo!("Error handle failure to convert string to float");
+                            }
                         };
 
-                        let node = Node::NumberLitExpr(literal);
-                        self.root.push_node(node);
-                        
-                        return AstRes::Node(node);
+                        let literal_expr = LiteralExpr { typ: LiteralType::Integer(parsed_num) };
+                        return AstRes::Match(Node::NumberLitExpr(literal_expr));
                     }
-
-                    // Otherwise, make integer
-                    let parsed_num = match token.lexeme.parse::<i32>() {
-                        Ok(parsed_num) => parsed_num,
-                        Err(_) => {
-                            eprintln!("Error parsing number literal to float");
-                            todo!("Error handling here");
-                        }
-                    };
-                    
-                    let literal = LiteralExpr {
-                        typ: LiteralType::Integer(parsed_num),
-                    };
-
-                    let node = Node::NumberLitExpr(literal);
-                    self.root.push_node(node);
-
-                    AstRes::Node(node)
                 },
+                _ => return AstRes::None,
+            }
+        } 
 
-                // String literals
-                TokenType::StringLit => {
-                    let literal: LiteralExpr = LiteralExpr {
-                        typ: LiteralType::String(String::from(&token.lexeme))
-                    };
-
-                    let node = Node::StringLitExpr(literal);
-                    self.root.push_node(node);
-
-                    AstRes::Node(node)
-                },
-
-                // End of file
-                TokenType::EndFile => AstRes::End,
-
-                _ => {
-                    AstRes::None
-                },
+        fn advance(&mut self) -> bool {
+            if let Some(t) = self.stream.next() {
+                self.current = t;
+                true
+            } else {
+                false
             }
         }
     }

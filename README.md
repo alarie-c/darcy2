@@ -3,8 +3,8 @@ Second attempt at my language implementation in Rust
 
 ## Updates
 - This is a rewrite of former darcylang, started on Mar 5 2024
-- AST generation does NOT work currently because I need to figure out lifetimes first
-    - Binary nodes and nodes that have child nodes need to take ownership of formerly created and stored nodes
+- AST generation does not work but the infrastructure is there (I need to implement it in main.rs)
+- Also fixed an embarassing mistake where I iterated through every char looking for newlines isntead of just .split("\n") O_O
 
 ## Project Milestones
 - [x] Complete lexer (symbols, keywords, and literals)
@@ -22,3 +22,7 @@ Second attempt at my language implementation in Rust
 - [x] Create lexer struct
 - [x] Implement helper functions
 - [ ] Complete `scan()` method
+
+## Parser TODO
+- [x] Complete AST infrastructure and nodes
+- [ ] Generate and push nodes from AST
