@@ -1,6 +1,8 @@
-use std::{env, io::Read, fs::File};
+use std::{env, fs::File, io::Read};
 use lexer::lexer::Lexer;
 use token::token::{Token, TokenType};
+
+use crate::ast::ast::Ast;
 
 mod token;
 mod lexer;
@@ -23,8 +25,15 @@ fn main() {
         let mut lexer = Lexer::new(chars, lines);
         lexer.scan();
 
-        println!("{:#?}", lexer.tokens);
+        println!("{:#?}", &lexer.tokens);
 
+        let mut parser = Ast::new(lexer.tokens);
+        parser.parse();
+
+        for node in parser.tree {
+            println!("{:#?}", node);
+        }
+        
         // Print each token and it's corresponding line content
         // for token in lexer.tokens {
         //     println!("{:?}", token);

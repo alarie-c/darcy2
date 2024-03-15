@@ -13,6 +13,7 @@ pub mod node {
 
         // Other
         RootNode,
+        EndNode,
     }
 
     #[derive(Debug, Clone, PartialEq)]
@@ -72,7 +73,7 @@ pub mod ast {
     }
 
     impl Ast {
-        fn new(tokens: Vec<Token>) -> Self {
+        pub fn new(tokens: Vec<Token>) -> Self {
             let mut tree: SlotMap<NodeKey, Node> = SlotMap::with_key();
             let keys = Vec::<NodeKey>::new();
 
@@ -93,17 +94,18 @@ pub mod ast {
 
         // Takes the stream of incoming tokens and constructs an
         // abstract syntax tree based on it
-        fn parse(&mut self) {
+        pub fn parse(&mut self) {
             'parse: loop {
                 let node = match self.match_token() {
                     AstRes::Match(n) => {
                         self.push_node(n);
                     },
                     AstRes::None => {
-                        todo!("No node returned");
+                        
                     },
                     AstRes::End => {
-                        todo!("End of file returned");
+                        self.push_node(Node::EndNode);
+                        break 'parse;
                     },
                 };
 
@@ -155,6 +157,16 @@ pub mod ast {
                         return AstRes::Match(Node::NumberLitExpr(literal_expr));
                     }
                 },
+
+                // String literal
+                TokenType::StringLit => {
+                    let literal_expr = LiteralExpr { typ: LiteralType::String(self.current.lexeme.to_string()) };
+                    return AstRes::Match(Node::StringLitExpr(literal_expr));
+                }
+
+                // End of file token
+                TokenType::EndFile => return AstRes::End,
+
                 _ => return AstRes::None,
             }
         } 
